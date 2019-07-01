@@ -5,13 +5,7 @@ up:
 	docker-compose up
 
 test:
-	docker-compose exec web venv/bin/py.test -vv
+	docker-compose exec exercise-toes-web venv/bin/py.test -vv
 
-update-dev:
-	docker-compose run --rm web bash -c 'source /root/.bashrc && invoke update-dev'
-
-update-prod:
-	docker-compose run --rm web bash -c 'source /root/.bashrc && invoke update-prod'
-
-tail:
-	docker-compose run --rm web bash -c 'source /root/.bashrc && invoke tail'
+test-step-1:
+	docker-compose exec exercise-toes-web venv/bin/py.test -vv actblue/test_actblue.py::test_mobile_commons_profile_already_exists actblue/test_actblue.py::test_mobile_commons_profile_upload

@@ -1,22 +1,22 @@
 version: '3'
 
 services:
-  dynamodb:
-    container_name: dynamodb
+  exercise-toes-dynamodb:
+    container_name: exercise_toes_dynamodb
     image: amazon/dynamodb-local
     ports:
-      - "8000:8000"
+      - "8005:8005"
     volumes:
       - dynamodata:/home/dynamodblocal
     working_dir: /home/dynamodblocal
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
 
-  web:
+  exercise-toes-web:
     restart: always
     build: .
     depends_on:
-      - dynamodb
-    container_name: toes_web
+      - exercise-toes-dynamodb
+    container_name: exercise_toes_web
     volumes:
       - .:/app
       - ~/.aws:/root/.aws
@@ -24,12 +24,12 @@ services:
     environment:
       - PYTHONPATH=/var/runtime:/app
     expose:
-      - "5000"
+      - "5005"
     command: bash -c "source /root/.bashrc && invoke start"
     ports:
-      - "5000:5000"
+      - "5005:5005"
     links:
-      - dynamodb:dynamodb
+      - exercise-toes-dynamodb:exercise-toes-dynamodb
 
 volumes:
     dynamodata: {}
