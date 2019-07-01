@@ -1,5 +1,5 @@
 # exercise-toes
-We believe down to our toes. Generic home for endpoints for organizing APIs, webhooks, website utils, etc.
+We believe in this fight down to our toes. Generic home for endpoints for organizing APIs, webhooks, website utils, etc.
 
 This is a service running in production, pared down to be an interview
 question about implementing an ActBlue webhook that opts new donors into
