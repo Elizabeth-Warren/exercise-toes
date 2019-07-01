@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  dynamodb:
+    container_name: dynamodb
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - dynamodata:/home/dynamodblocal
+    working_dir: /home/dynamodblocal
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ."
+
+  web:
+    restart: always
+    build: .
+    depends_on:
+      - dynamodb
+    container_name: toes_web
+    volumes:
+      - .:/app
+      - ~/.aws:/root/.aws
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/var/runtime:/app
+    expose:
+      - "5000"
+    command: bash -c "source /root/.bashrc && invoke start"
+    ports:
+      - "5000:5000"
+    links:
+      - dynamodb:dynamodb
+
+volumes:
+    dynamodata: {}

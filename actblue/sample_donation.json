@@ -1,0 +1,54 @@
+{
+    "donor":  {
+        "firstname": "Mary",
+        "lastname": "Smith",
+        "addr1": "20 Belvedere Ave.",
+        "city": "Richmond",
+        "state": "CA",
+        "zip": "94801",
+        "country": "United States",
+        "isEligibleForExpressLane": true,
+        "employerData": {
+            "employer": "Retired",
+            "occupation": "Retired",
+            "employerAddr1": null,
+            "employerCity": null,
+            "employerState": null,
+            "employerCountry": null
+        },
+        "email": "example@example.com",
+        "phone": "5105016227"
+    },
+    "contribution": {
+        "createdAt": "2019-06-07T15:49:32-04:00",
+        "orderNumber": "AB999999",
+        "contributionForm": "ew-jun19eoq",
+        "refcode": "20190626em3-eoq-abx-d",
+        "refcode2": null,
+        "creditCardExpiration": "02/2023",
+        "recurringPeriod": "once",
+        "recurringDuration": 1,
+        "abTestName": "2019_06_25_preset_ask",
+        "isRecurring": false,
+        "isPaypal": false,
+        "isMobile": false,
+        "abTestVariation": "75_ask",
+        "isExpress": true,
+        "withExpressLane": true,
+        "expressSignup": false,
+        "uniqueIdentifier": "442f9935-fcf3-47cb-8a6c-8ee6c69a4d5e",
+        "status": "approved",
+        "thanksUrl": "https://secure.actblue.com/thanks/AB79543050?success=true&tk=ab452b31d58f53c1eaae003894ada4c5d1d092b9"
+    },
+    "lineitems": [
+        {
+            "sequence": 0,
+            "entityId": 12345,
+            "fecId": "C00123456",
+            "committeeName": "Warren for President, Inc.",
+            "amount": "50.0",
+            "paidAt": "2019-06-26T18:09:28-04:00",
+            "lineitemId": 123456789
+        }
+    ]
+}

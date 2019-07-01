@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "app_function": "toes_app.app",
+    "aws_region": "us-east-1",
+    "base_path": "dev",
+    "project_name": "toes",
+    "debug": true,
+    "runtime": "python3.7",
+    "s3_bucket": "zappa-toes",
+    "certificate_arn": "arn:aws:acm:us-east-1:445320746747:certificate/9c45d9ea-d83e-4002-8e83-4aed1bba26ec",
+    "domain": "toes.elizabethwarren.codes",
+    "extra_permissions": [{
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": "*",
+    }]
+  },
+  "prod": {
+    "extends": "dev",
+    "debug": false,
+    "base_path": "prod",
+  },
+}
