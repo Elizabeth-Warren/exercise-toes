@@ -21,7 +21,12 @@ As you work on Step 1 of the interview, you can `make test-step-1` to
 only run the relevant tests of Step 1. (After they all pass, you should
 also check that `make test` still works : )
 
-## How to run locally
+## How to run locally (not needed for interview)
 1. `make build up`
 2. `make up`
-3. Open http://0.0.0.0:5000/ locally, e.g. [this mdata/debt endpoint](http://0.0.0.0:5000/dev/mdata/debt?args=120000&profile_techsandbox_income_last_year=120000&profile_techsandbox_outstanding_student_loan_debt=60000)
+3. Open http://0.0.0.0:5000/ locally
+
+BTW the docker-compose set up also starts mongodb, which is also not
+used as part of the interview question. It's there for future
+flexibility (the toes app in production does use mongodb for other
+features).
