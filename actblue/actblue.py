@@ -109,4 +109,4 @@ def upload_to_mobilecommons(event):
     # * HumanName (imported from nameparser module)
 
     print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
-    #raise(NotImplementedError)
+    raise(NotImplementedError)
