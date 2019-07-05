@@ -190,7 +190,7 @@ def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_web
     def check_mobile_commons_request_body(request):
         body = json.loads(request.body)
         expected = {
-            "phone_number": "5105016227",
+            "phone_number": "15105016227",
             "email": "example@example.com",
             "postal_code": "94801",
             "first_name": "Mary",
