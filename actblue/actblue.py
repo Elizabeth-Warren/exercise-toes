@@ -10,7 +10,8 @@
 #   https://secure.actblue.com/docs/webhooks
 
 from functools import wraps
-import datetime
+from datetime import datetime, time, timedelta
+import pytz
 import json
 
 from flask import (
@@ -20,7 +21,7 @@ from flask import (
     request,
 )
 from nameparser import HumanName
-import boto3
+# import boto3
 import dateutil
 from zappa.asynchronous import task
 
@@ -37,6 +38,13 @@ OPT_IN_PATH_ID = '279022'
 
 S3_BUCKET = 'ew-actblue-donations-incoming'
 
+# This is naive, we may not want a lag this large
+LAG_RANGE_HOURS = 1
+
+EASTERN_TIMEZONE = 'US/Eastern'
+
+EARLIER_TEXT_TIME_RANGE = 9
+LATER_TEXT_TIME_RANGE = 21
 
 def check_auth(username, password):
     return (username == settings.actblue_webhook_username() and
@@ -77,18 +85,41 @@ def donation():
 
 @task
 def process_donation(event):
-    write_to_s3(event)
+    # write_to_s3(event)
     upload_to_mobilecommons(event)
 
+# Note: we are also making the dt objects UTC offset-aware,
+# which will help create timedelta objects
+def tz_to_utc(dt):
+    return dt.astimezone(pytz.utc)
 
-def write_to_s3(event):
-    created_at = dateutil.parser.parse(event['contribution']['createdAt'])
-    time_now = datetime.datetime.now(datetime.timezone.utc)
+def tz_to_eastern(dt):
+    return dt.astimezone(pytz.timezone(EASTERN_TIMEZONE))
 
-    key = f"{time_now.strftime('%Y-%m-%d_%H:%M:%S')}_{created_at.strftime('%Y-%m-%d_%H:%M:%S')}_{event['contribution']['orderNumber']}.json"
-    s3 = boto3.resource('s3')
-    body = json.dumps(event)
-    s3.Bucket(S3_BUCKET).put_object(Key=key, Body=body)
+def lag_exists(dt_1, dt_2):
+    delta = dt_1 - dt_2
+    if delta > timedelta(hours=LAG_RANGE_HOURS):
+        return True
+    return False
+
+def is_nighttime(dt):
+    eastern_tz_time = tz_to_eastern(dt).time()
+    earlier = time(hour=EARLIER_TEXT_TIME_RANGE)
+    later = time(hour=LATER_TEXT_TIME_RANGE)
+    # If the time we pass in is between acceptable hours
+    if earlier < eastern_tz_time < later:
+        return False
+    else:
+        return True
+
+# def write_to_s3(event):
+#     created_at = dateutil.parser.parse(event['contribution']['createdAt'])
+#     time_now = datetime.datetime.now(datetime.timezone.utc)
+
+#     key = f"{time_now.strftime('%Y-%m-%d_%H:%M:%S')}_{created_at.strftime('%Y-%m-%d_%H:%M:%S')}_{event['contribution']['orderNumber']}.json"
+#     s3 = boto3.resource('s3')
+#     body = json.dumps(event)
+#     s3.Bucket(S3_BUCKET).put_object(Key=key, Body=body)
 
 
 def upload_to_mobilecommons(event):
@@ -108,5 +139,45 @@ def upload_to_mobilecommons(event):
     # * OPT_IN_PATH_ID
     # * HumanName (imported from nameparser module)
 
+    # Naive implementation: if it's nighttime on the East coast, don't send
+    # any messages, unless the lag between contribution
+    # creation time and now is less than a const (hardcoded).
+    # The pytz package should handle DST for us.
+    utc_now = tz_to_utc(datetime.now())
+    contribution_string = event['contribution']['createdAt']
+    # From ActBlue webhook documentation:
+    #     "createdAt": "ISO 8601 timestamp for the contribution (e.g. 2017-10-03T13:48:26-04:00)",
+    # https://secure.actblue.com/docs/webhooks
+    utc_contribution_dt = tz_to_utc(datetime.strptime(contribution_string, "%Y-%m-%dT%H:%M:%S%z"))
+
+    if is_nighttime(utc_now) and lag_exists(utc_now, utc_contribution_dt):
+        return
+
     print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
-    raise(NotImplementedError)
+    # if no phone number, return
+    donor_phone = event['donor']['phone']
+    if extract_phone_number(donor_phone) == None:
+        return
+    # if profile exists, return
+    if profile_exists(donor_phone):
+        return
+    # send a POST req to mobile_commons with the normalized name (f/l) and opt in path id
+    human_name_string = event['donor']['firstname'] + " " + event['donor']['lastname']
+    human_name = HumanName(human_name_string)
+    human_name.capitalize()
+    first = human_name['first']
+    last = human_name['last']
+
+    data = {
+        "phone_number" : donor_phone,
+        "email" : event['donor']['email'],
+        "postal_code" : event['donor']['zip'],
+        "first_name" : first,
+        "last_name" : last,
+        "street1" : event['donor']['addr1'],
+        "city" : event['donor']['city'],
+        "state" : event['donor']['state'],
+        "country" : "US",
+        "opt_in_path_id" : OPT_IN_PATH_ID,
+    }
+    create_or_update_mobile_commons_profile(data)
