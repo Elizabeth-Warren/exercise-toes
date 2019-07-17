@@ -72,6 +72,20 @@ MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE = """
 </response>
 """
 
+@pytest.fixture
+def add_common_server_responses():
+    responses.add(
+        responses.POST,
+        'https://secure.mcommons.com/api/profile',
+        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
+        match_querystring=True,
+    )
+
+    responses.add(
+        responses.POST,
+        'https://secure.mcommons.com/api/profile_update',
+        match_querystring=True,
+    )
 
 @pytest.fixture
 def sample_donation():
@@ -154,7 +168,6 @@ def test_mobile_commons_profile_already_exists(client, sample_donation, mock_act
         body=MOBILE_COMMONS_PROFILE_RESPONSE,
         match_querystring=True,
     )
-
     try:
         res = client.post(
             url_for('actblue.donation'),
@@ -170,39 +183,8 @@ def test_mobile_commons_profile_already_exists(client, sample_donation, mock_act
 
 @responses.activate
 @freezegun.freeze_time(MIDNIGHT_WEBHOOK_NOTIFICATION_TIME)
-def test_not_sent_overnight_with_lag(client, sample_donation, mock_actblue_webhook_auth):
-    responses.add(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile',
-        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
-        match_querystring=True,
-    )
-
-    def check_mobile_commons_request_body(request):
-        body = json.loads(request.body)
-        expected = {
-            "phone_number": "5105016227",
-            "email": "example@example.com",
-            "postal_code": "94801",
-            "first_name": "Mary",
-            "last_name": "Smith",
-            "street1": "20 Belvedere Ave.",
-            "city": "Richmond",
-            "state": "CA",
-            "country": "US",
-            "opt_in_path_id": "279022",
-        }
-        for k, v in expected.items():
-            assert body[k] == v
-        return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
-
-    responses.add_callback(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile_update',
-        callback=check_mobile_commons_request_body,
-        match_querystring=True,
-    )
-
+def test_not_sent_overnight_with_lag(client, sample_donation, mock_actblue_webhook_auth,
+    add_common_server_responses):
     sd = json.loads(sample_donation)
     sd["contribution"]["createdAt"] = '2019-06-07T01:30:24-04:00'
     sd_json = json.dumps(sd)
@@ -216,39 +198,8 @@ def test_not_sent_overnight_with_lag(client, sample_donation, mock_actblue_webho
 
 @responses.activate
 @freezegun.freeze_time(MIDNIGHT_WEBHOOK_NOTIFICATION_TIME)
-def test_sent_overnight_if_no_lag(client, sample_donation, mock_actblue_webhook_auth):
-    responses.add(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile',
-        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
-        match_querystring=True,
-    )
-
-    def check_mobile_commons_request_body(request):
-        body = json.loads(request.body)
-        expected = {
-            "phone_number": "5105016227",
-            "email": "example@example.com",
-            "postal_code": "94801",
-            "first_name": "Mary",
-            "last_name": "Smith",
-            "street1": "20 Belvedere Ave.",
-            "city": "Richmond",
-            "state": "CA",
-            "country": "US",
-            "opt_in_path_id": "279022",
-        }
-        for k, v in expected.items():
-            assert body[k] == v
-        return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
-
-    responses.add_callback(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile_update',
-        callback=check_mobile_commons_request_body,
-        match_querystring=True,
-    )
-
+def test_sent_overnight_if_no_lag(client, sample_donation, mock_actblue_webhook_auth,
+    add_common_server_responses):
     sd = json.loads(sample_donation)
     sd["contribution"]["createdAt"] = '2019-06-08T01:30:24-04:00'
     sd_json = json.dumps(sd)
@@ -263,39 +214,8 @@ def test_sent_overnight_if_no_lag(client, sample_donation, mock_actblue_webhook_
 
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
-def test_sent_in_daylight(client, sample_donation, mock_actblue_webhook_auth):
-    responses.add(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile',
-        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
-        match_querystring=True,
-    )
-
-    def check_mobile_commons_request_body(request):
-        body = json.loads(request.body)
-        expected = {
-            "phone_number": "5105016227",
-            "email": "example@example.com",
-            "postal_code": "94801",
-            "first_name": "Mary",
-            "last_name": "Smith",
-            "street1": "20 Belvedere Ave.",
-            "city": "Richmond",
-            "state": "CA",
-            "country": "US",
-            "opt_in_path_id": "279022",
-        }
-        for k, v in expected.items():
-            assert body[k] == v
-        return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
-
-    responses.add_callback(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile_update',
-        callback=check_mobile_commons_request_body,
-        match_querystring=True,
-    )
-
+def test_sent_in_daylight(client, sample_donation, mock_actblue_webhook_auth,
+    add_common_server_responses):
     res = client.post(
         url_for('actblue.donation'),
         headers={ 'Authorization': mock_actblue_webhook_auth },
@@ -307,38 +227,8 @@ def test_sent_in_daylight(client, sample_donation, mock_actblue_webhook_auth):
 
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
-def test_sent_in_daylight_with_lag(client, sample_donation, mock_actblue_webhook_auth):
-    responses.add(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile',
-        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
-        match_querystring=True,
-    )
-
-    def check_mobile_commons_request_body(request):
-        body = json.loads(request.body)
-        expected = {
-            "phone_number": "5105016227",
-            "email": "example@example.com",
-            "postal_code": "94801",
-            "first_name": "Mary",
-            "last_name": "Smith",
-            "street1": "20 Belvedere Ave.",
-            "city": "Richmond",
-            "state": "CA",
-            "country": "US",
-            "opt_in_path_id": "279022",
-        }
-        for k, v in expected.items():
-            assert body[k] == v
-        return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
-
-    responses.add_callback(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile_update',
-        callback=check_mobile_commons_request_body,
-        match_querystring=True,
-    )
+def test_sent_in_daylight_with_lag(client, sample_donation, mock_actblue_webhook_auth,
+    add_common_server_responses):
     sd = json.loads(sample_donation)
     sd["contribution"]["createdAt"] = '2019-06-07T01:30:24-04:00'
     sd_json = json.dumps(sd)
@@ -355,13 +245,8 @@ def test_sent_in_daylight_with_lag(client, sample_donation, mock_actblue_webhook
 
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
-def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_webhook_auth):
-    responses.add(
-        responses.POST,
-        'https://secure.mcommons.com/api/profile',
-        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
-        match_querystring=True,
-    )
+def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_webhook_auth,
+    add_common_server_responses):
 
     def check_mobile_commons_request_body(request):
         body = json.loads(request.body)

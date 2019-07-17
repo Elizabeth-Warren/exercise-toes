@@ -44,6 +44,7 @@ LAG_RANGE_HOURS = 1
 EASTERN_TIMEZONE = 'US/Eastern'
 
 EARLIER_TEXT_TIME_RANGE = 9
+
 LATER_TEXT_TIME_RANGE = 21
 
 def check_auth(username, password):
@@ -98,19 +99,13 @@ def tz_to_eastern(dt):
 
 def lag_exists(dt_1, dt_2):
     delta = dt_1 - dt_2
-    if delta > timedelta(hours=LAG_RANGE_HOURS):
-        return True
-    return False
+    return True if delta > timedelta(hours=LAG_RANGE_HOURS) else False
 
 def is_nighttime(dt):
-    eastern_tz_time = tz_to_eastern(dt).time()
     earlier = time(hour=EARLIER_TEXT_TIME_RANGE)
     later = time(hour=LATER_TEXT_TIME_RANGE)
     # If the time we pass in is between acceptable hours
-    if earlier < eastern_tz_time < later:
-        return False
-    else:
-        return True
+    return False if earlier < tz_to_eastern(dt).time() < later else True
 
 # def write_to_s3(event):
 #     created_at = dateutil.parser.parse(event['contribution']['createdAt'])
@@ -126,19 +121,11 @@ def upload_to_mobilecommons(event):
     """Given an incoming donation, creates new profile on Mobile Commons if appropriate.
 
     - Noop if donation does not have phone number.
+    - Noop if webhook is hit during nighttime on the East coast after lag between donation and POST.
     - Does not attempt to create/update profile if one already exists in Mobile Commons.
     - Opts the phone number in to OPT_IN_PATH_ID opt-in path on Mobile Commons.
     - Normalizes first/last name in case it comes in as all lowercase/uppercase.
     """
-    # TODO: implement this method : )
-    #
-    # Things you can use (they're already imported):
-    #
-    # * extract_phone_number() from common/input_validation.py
-    # * create_or_update_mobile_commons_profile() and profile_exists() from common/mobile_commons.py
-    # * OPT_IN_PATH_ID
-    # * HumanName (imported from nameparser module)
-
     # Naive implementation: if it's nighttime on the East coast, don't send
     # any messages, unless the lag between contribution
     # creation time and now is less than a const (hardcoded).
@@ -146,34 +133,25 @@ def upload_to_mobilecommons(event):
     utc_now = tz_to_utc(datetime.now())
     contribution_string = event['contribution']['createdAt']
     # From ActBlue webhook documentation:
-    #     "createdAt": "ISO 8601 timestamp for the contribution (e.g. 2017-10-03T13:48:26-04:00)",
+    # "createdAt": "ISO 8601 timestamp for the contribution (e.g. 2017-10-03T13:48:26-04:00)",
     # https://secure.actblue.com/docs/webhooks
     utc_contribution_dt = tz_to_utc(datetime.strptime(contribution_string, "%Y-%m-%dT%H:%M:%S%z"))
-
     if is_nighttime(utc_now) and lag_exists(utc_now, utc_contribution_dt):
         return
 
-    print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
-    # if no phone number, return
     donor_phone = event['donor']['phone']
-    if extract_phone_number(donor_phone) == None:
+    if extract_phone_number(donor_phone) == None or profile_exists(donor_phone):
         return
-    # if profile exists, return
-    if profile_exists(donor_phone):
-        return
-    # send a POST req to mobile_commons with the normalized name (f/l) and opt in path id
-    human_name_string = event['donor']['firstname'] + " " + event['donor']['lastname']
-    human_name = HumanName(human_name_string)
-    human_name.capitalize()
-    first = human_name['first']
-    last = human_name['last']
 
+    print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
+    human_name = HumanName(event['donor']['firstname'] + " " + event['donor']['lastname'])
+    human_name.capitalize()
     data = {
         "phone_number" : donor_phone,
         "email" : event['donor']['email'],
         "postal_code" : event['donor']['zip'],
-        "first_name" : first,
-        "last_name" : last,
+        "first_name" : human_name['first'],
+        "last_name" : human_name['last'],
         "street1" : event['donor']['addr1'],
         "city" : event['donor']['city'],
         "state" : event['donor']['state'],
