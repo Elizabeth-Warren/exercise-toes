@@ -99,13 +99,13 @@ def tz_to_eastern(dt):
 
 def lag_exists(dt_1, dt_2):
     delta = dt_1 - dt_2
-    return True if delta > timedelta(hours=LAG_RANGE_HOURS) else False
+    return delta > timedelta(hours=LAG_RANGE_HOURS)
 
 def is_nighttime(dt):
     earlier = time(hour=EARLIER_TEXT_TIME_RANGE)
     later = time(hour=LATER_TEXT_TIME_RANGE)
     # If the time we pass in is between acceptable hours
-    return False if earlier < tz_to_eastern(dt).time() < later else True
+    return (earlier > tz_to_eastern(dt).time()) or (tz_to_eastern(dt).time() > later)
 
 # def write_to_s3(event):
 #     created_at = dateutil.parser.parse(event['contribution']['createdAt'])
