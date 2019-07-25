@@ -3,18 +3,15 @@ import json
 import os
 
 from flask import url_for
-from moto import mock_s3
 import boto3
 import freezegun
 import pytest
 import responses
 
-from actblue.actblue import S3_BUCKET
 from common.settings import settings
 
 # In the sample, the donation was made at 2019-06-07T15:49:32-04:00.
 DAYTIME_WEBHOOK_NOTIFICATION_TIME = '2019-06-07T20:32:24Z'
-MIDNIGHT_WEBHOOK_NOTIFICATION_TIME = '2019-06-08T01:32:24Z'
 
 MOBILE_COMMONS_PROFILE_RESPONSE = """
 <response success="true">
@@ -89,12 +86,6 @@ def mock_actblue_webhook_auth():
     return f'Basic {b64encode(b"test_user:test_password").decode("ascii")}'
 
 
-def setup_mock_s3():
-    resource = boto3.resource('s3', region_name='us-east-1')
-    resource.create_bucket(Bucket=S3_BUCKET)
-    return resource
-
-
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_invalid_auth(client, sample_donation, mock_actblue_webhook_auth):
@@ -106,33 +97,9 @@ def test_invalid_auth(client, sample_donation, mock_actblue_webhook_auth):
     assert res.status_code == 401
 
 
-@mock_s3
-@freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
-def test_s3_upload(client, sample_donation, mock_actblue_webhook_auth):
-    s3_resource = setup_mock_s3()
-    d = json.loads(sample_donation)
-    d['donor']['phone'] = None
-    sample_donation_no_phone = json.dumps(d)
-    try:
-        res = client.post(
-            url_for('actblue.donation'),
-            headers={ 'Authorization': mock_actblue_webhook_auth },
-            data=sample_donation_no_phone,
-        )
-        assert res.status_code == 204
-    except NotImplementedError:
-        print(f'Waiting for implementation of upload_to_mobilecommons() : )')
-
-    expected_key = f'2019-06-07_20:32:24_2019-06-07_15:49:32_AB999999.json'
-    body = s3_resource.Object(S3_BUCKET, expected_key).get()['Body'].read().decode('utf-8')
-    assert body == sample_donation_no_phone
-
-
-@mock_s3
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_valid_auth_no_phone(client, sample_donation, mock_actblue_webhook_auth):
-    setup_mock_s3()
     d = json.loads(sample_donation)
     d['donor']['phone'] = None
     sample_donation_no_phone = json.dumps(d)
@@ -149,11 +116,9 @@ def test_valid_auth_no_phone(client, sample_donation, mock_actblue_webhook_auth)
     assert len(responses.calls) == 0  # No Mobile Commons requests because no incoming phone number
 
 
-@mock_s3
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_mobile_commons_profile_already_exists(client, sample_donation, mock_actblue_webhook_auth):
-    setup_mock_s3()
     responses.add(
         responses.POST,
         'https://secure.mcommons.com/api/profile',
@@ -175,11 +140,9 @@ def test_mobile_commons_profile_already_exists(client, sample_donation, mock_act
     assert res.status_code == 204
 
 
-@mock_s3
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_webhook_auth):
-    setup_mock_s3()
     responses.add(
         responses.POST,
         'https://secure.mcommons.com/api/profile',

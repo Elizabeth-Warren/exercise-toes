@@ -35,8 +35,6 @@ mod = Blueprint('actblue', __name__)
 
 OPT_IN_PATH_ID = '279022'
 
-S3_BUCKET = 'ew-actblue-donations-incoming'
-
 
 def check_auth(username, password):
     return (username == settings.actblue_webhook_username() and
@@ -77,18 +75,7 @@ def donation():
 
 @task
 def process_donation(event):
-    write_to_s3(event)
     upload_to_mobilecommons(event)
-
-
-def write_to_s3(event):
-    created_at = dateutil.parser.parse(event['contribution']['createdAt'])
-    time_now = datetime.datetime.now(datetime.timezone.utc)
-
-    key = f"{time_now.strftime('%Y-%m-%d_%H:%M:%S')}_{created_at.strftime('%Y-%m-%d_%H:%M:%S')}_{event['contribution']['orderNumber']}.json"
-    s3 = boto3.resource('s3')
-    body = json.dumps(event)
-    s3.Bucket(S3_BUCKET).put_object(Key=key, Body=body)
 
 
 def upload_to_mobilecommons(event):
