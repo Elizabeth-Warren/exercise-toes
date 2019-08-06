@@ -6,6 +6,3 @@ up:
 
 test:
 	docker exec exercise-toes-web python -m pytest -vv
-
-test-step-1:
-	docker exec exercise-toes-web python -m pytest -vv actblue/test_actblue.py::test_mobile_commons_profile_already_exists actblue/test_actblue.py::test_mobile_commons_profile_upload
