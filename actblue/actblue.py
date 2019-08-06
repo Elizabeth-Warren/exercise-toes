@@ -20,9 +20,7 @@ from flask import (
     request,
 )
 from nameparser import HumanName
-import boto3
 import dateutil
-from zappa.asynchronous import task
 
 from common.mobile_commons import (
     create_or_update_mobile_commons_profile,
@@ -69,13 +67,8 @@ def donation():
         print(f'ActBlue - Bad Request - data: {req_body}')
         return ('Bad Request', 400)
 
-    process_donation(event)
-    return ('', 204)
-
-
-@task
-def process_donation(event):
     upload_to_mobilecommons(event)
+    return ('', 204)
 
 
 def upload_to_mobilecommons(event):
