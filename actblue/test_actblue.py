@@ -3,7 +3,6 @@ import json
 import os
 
 from flask import url_for
-import boto3
 import freezegun
 import pytest
 import responses

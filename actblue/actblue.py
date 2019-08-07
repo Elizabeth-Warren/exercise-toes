@@ -21,9 +21,12 @@ from flask import (
     request,
 )
 from nameparser import HumanName
-import boto3
 import dateutil
+<<<<<<< HEAD
 from zappa.asynchronous import task
+=======
+
+>>>>>>> 3dcf57239bb2bb96ba696e930f9061d07cdb93a1
 from common.mobile_commons import (
     create_or_update_mobile_commons_profile,
     profile_exists,
@@ -71,12 +74,16 @@ def donation():
         print(f'ActBlue - Bad Request - data: {req_body}')
         return ('Bad Request', 400)
 
+<<<<<<< HEAD
     process_donation(event)
     return ('', 204)
 
 @task
 def process_donation(event):
+=======
+>>>>>>> 3dcf57239bb2bb96ba696e930f9061d07cdb93a1
     upload_to_mobilecommons(event)
+    return ('', 204)
 
 def create_payload(donor):
     payld = {}

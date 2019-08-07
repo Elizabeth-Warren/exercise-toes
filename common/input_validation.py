@@ -1,11 +1,9 @@
 import re
 
-from nameparser import HumanName
 import phonenumbers
 
-PHONE_REGEX = re.compile(r'\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})')
-POSTAL_CODE_RE = re.compile(r'[0-9]{5}')
 
+<<<<<<< HEAD
 STATE_TO_ABBREV = {
     'alabama': 'AL',
     'alaska': 'AK',
@@ -72,48 +70,15 @@ def extract_postal_code(t):
     match = POSTAL_CODE_RE.search(t)
     if match:
         return match.group(0)
-
-
+=======
 def extract_phone_number(t):
+    """Given string containing a phone #, returns string with phone # in canonical format.
+>>>>>>> 3dcf57239bb2bb96ba696e930f9061d07cdb93a1
+
+    Format returned is e.g. '15105016227', which is Mobile Commons canonical format.
+
+    Returns None if there no phone number in the input.
+    """
     matcher = phonenumbers.PhoneNumberMatcher(t, 'US')
     if matcher.has_next():
         return phonenumbers.format_number(matcher.next().number, phonenumbers.PhoneNumberFormat.E164).replace('+', '')
-
-
-def extract_name(full_name):
-    full_name = full_name.strip()
-    name = HumanName(full_name)
-    name.capitalize()
-    first_name = ' '.join(list(filter(None, [name.title, name.first])))
-    last_name = name.last
-    first_and_last_name = ' '.join([first_name, last_name])
-    return first_and_last_name, first_name, last_name
-
-
-def extract_personal_reason(t):
-    t = t.strip()
-    # TODO length validation
-    return t
-
-
-def extract_city_state(t):
-    pieces = t.replace(',', ' ').split()
-    if len(pieces) < 2:
-        return None, None
-
-    state = pieces.pop().lower()
-    if state == 'virginia' and pieces[-1].lower() == 'west':
-        state = 'WV'
-        pieces.pop()
-    elif state in STATE_TO_ABBREV:
-        state = STATE_TO_ABBREV[state]
-    elif ' '.join([pieces[-1].lower(), state]) in STATE_TO_ABBREV:
-        state = STATE_TO_ABBREV[' '.join([pieces[-1].lower(), state])]
-        pieces.pop()
-    elif state.upper() in STATE_ABBREVS:
-        state = state.upper()
-    else:
-        return None, None
-
-    city = ' '.join(pieces)
-    return city, state
