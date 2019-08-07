@@ -3,11 +3,19 @@ import os
 
 import requests
 import xmltodict
+from datetime import datetime
+import json,os
+from pytz import timezone
+import dateutil
+
 
 from common.settings import settings
 
 MOBILE_COMMONS_API_BASE = mobileCommonsApiBase = 'https://secure.mcommons.com/api/'
-
+MOBILE_COMMONS_TIMEZONE = "US/Eastern"
+MOBILE_COMMONS_ACTBLUE_MAX_DELAY = 3600 # actblue delayed by more than 1 hour or 3600 seconds
+MOBILE_COMMONS_NIGHT_BEGIN = 21 # night beginning in 9pm
+MOBILE_COMMONS_NIGHT_END = 9 # night ends in 9am
 
 def post_to_mobile_commons(api_method, payload):
     url = mobileCommonsApiBase + api_method
@@ -31,6 +39,15 @@ def send_sms(campaign_id, phone_number, message):
     except RuntimeError as e:
         print('Error posting to MC', e)
 
+def send_update(event):
+    contribution_time = dateutil.parser.parse(event['contribution']['createdAt'])
+    eastern = timezone('US/Eastern')
+    current = datetime.now(eastern)
+    diff = current - contribution_time
+    if diff.total_seconds()>MOBILE_COMMONS_ACTBLUE_MAX_DELAY: #s
+        if current.hour<MOBILE_COMMONS_NIGHT_END or current.hour>MOBILE_COMMONS_NIGHT_BEGIN: #before 9am or after 9pm Eastern time
+            return False # don't send if difference is more than 1 hour or night time
+    return True
 
 def profile_exists(phone_number):
     try:
@@ -42,7 +59,6 @@ def profile_exists(phone_number):
         return 'response' in d and 'success' in d['response'] and d['response']['success'] == 'true'
     except RuntimeError as e:
         print('Error posting to MC', e)
-
 
 def create_or_update_mobile_commons_profile(payload):
     try:

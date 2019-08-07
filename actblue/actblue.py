@@ -10,8 +10,9 @@
 #   https://secure.actblue.com/docs/webhooks
 
 from functools import wraps
-import datetime
-import json
+from datetime import datetime
+import json,os
+from pytz import timezone
 
 from flask import (
     Blueprint,
@@ -23,12 +24,13 @@ from nameparser import HumanName
 import boto3
 import dateutil
 from zappa.asynchronous import task
-
 from common.mobile_commons import (
     create_or_update_mobile_commons_profile,
     profile_exists,
+    send_update
 )
 from common.input_validation import extract_phone_number
+from common.input_validation import COUNTRYS_TO_ABBREV
 from common.settings import settings
 
 mod = Blueprint('actblue', __name__)
@@ -72,11 +74,25 @@ def donation():
     process_donation(event)
     return ('', 204)
 
-
 @task
 def process_donation(event):
     upload_to_mobilecommons(event)
 
+def create_payload(donor):
+    payld = {}
+    payld['phone_number'] = donor['phone_number']
+    payld['email'] = donor['email']
+    payld['postal_code'] = donor['zip']
+    name = HumanName(donor['firstname'] + " " + donor['lastname'])
+    name.capitalize()
+    payld['first_name'] = name.first
+    payld['last_name'] = name.last
+    payld['city'] = donor['city']
+    payld['state'] = donor['state']
+    payld['country'] = COUNTRYS_TO_ABBREV[donor['country']]
+    payld['street1'] = donor['addr1']
+    payld['opt_in_path_id'] = OPT_IN_PATH_ID
+    return payld
 
 def upload_to_mobilecommons(event):
     """Given an incoming donation, creates new profile on Mobile Commons if appropriate.
@@ -94,6 +110,15 @@ def upload_to_mobilecommons(event):
     # * create_or_update_mobile_commons_profile() and profile_exists() from common/mobile_commons.py
     # * OPT_IN_PATH_ID
     # * HumanName (imported from nameparser module)
+    # print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
+    # raise(NotImplementedError)
 
-    print(f'upload_to_mobilecommons with event: {json.dumps(event, indent=2)}')
-    raise(NotImplementedError)
+    donor = event['donor']
+    phone_fld = donor['phone']
+    if phone_fld:
+        phone_num = extract_phone_number(donor['phone'])
+        donor['phone_number'] = phone_num
+        if not profile_exists(phone_num):
+            payld = create_payload(donor)
+            if send_update(event):
+                create_or_update_mobile_commons_profile(payld)

@@ -86,6 +86,37 @@ def mock_actblue_webhook_auth():
     return f'Basic {b64encode(b"test_user:test_password").decode("ascii")}'
 
 
+def check_mobile_commons_request_body(request):
+    body = json.loads(request.body)
+    print('request body is', json.dumps(body, indent=2))
+    expected = {
+        "phone_number": "15105016227",
+        "email": "example@example.com",
+        "postal_code": "94801",
+        "first_name": "Mary",
+        "last_name": "Smith",
+        "street1": "20 Belvedere Ave.",
+        "city": "Richmond",
+        "state": "CA",
+        "country": "US",
+        "opt_in_path_id": "279022",
+    }
+    for k, v in expected.items():
+        assert body[k] == v
+    return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
+
+def run_mock_actblue_webhook_auth(client, sample_donation, mock_actblue_webhook_auth):
+    try:
+        res = client.post(
+            url_for('actblue.donation'),
+            headers={ 'Authorization': mock_actblue_webhook_auth },
+            data=sample_donation,
+        )
+        return res
+    except NotImplementedError:
+        print(f'Waiting for implementation of upload_to_mobilecommons() : )')
+        return
+
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_invalid_auth(client, sample_donation, mock_actblue_webhook_auth):
@@ -139,7 +170,6 @@ def test_mobile_commons_profile_already_exists(client, sample_donation, mock_act
     assert len(responses.calls) == 1  # No profile_update request because one already exists.
     assert res.status_code == 204
 
-
 @responses.activate
 @freezegun.freeze_time(DAYTIME_WEBHOOK_NOTIFICATION_TIME)
 def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_webhook_auth):
@@ -150,23 +180,46 @@ def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_web
         match_querystring=True,
     )
 
-    def check_mobile_commons_request_body(request):
-        body = json.loads(request.body)
-        expected = {
-            "phone_number": "15105016227",
-            "email": "example@example.com",
-            "postal_code": "94801",
-            "first_name": "Mary",
-            "last_name": "Smith",
-            "street1": "20 Belvedere Ave.",
-            "city": "Richmond",
-            "state": "CA",
-            "country": "US",
-            "opt_in_path_id": "279022",
-        }
-        for k, v in expected.items():
-            assert body[k] == v
-        return (200, {}, MOBILE_COMMONS_PROFILE_UPDATE_RESPONSE)
+    responses.add_callback(
+        responses.POST,
+        'https://secure.mcommons.com/api/profile_update',
+        callback=check_mobile_commons_request_body,
+        match_querystring=True,
+    )
+
+    res = run_mock_actblue_webhook_auth(client, sample_donation, mock_actblue_webhook_auth)
+
+    assert len(responses.calls) == 2
+    assert res.status_code == 204
+
+
+from datetime import datetime
+from freezegun import freeze_time
+@responses.activate
+@freezegun.freeze_time('2019-06-17T04:32:24Z') #midnight
+def test_mobile_commons_profile_upload_midnight_delayed(client, sample_donation, mock_actblue_webhook_auth):
+    responses.add(
+        responses.POST,
+        'https://secure.mcommons.com/api/profile',
+        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
+        match_querystring=True,
+    )
+
+    res = run_mock_actblue_webhook_auth(client, sample_donation, mock_actblue_webhook_auth)
+
+    assert len(responses.calls) == 1
+    return
+
+
+@responses.activate
+@freezegun.freeze_time('2019-06-17T04:32:24Z') #midnight
+def test_mobile_commons_profile_upload_midnight_nodelayed(client, sample_donation, mock_actblue_webhook_auth):
+    responses.add(
+        responses.POST,
+        'https://secure.mcommons.com/api/profile',
+        body=MOBILE_COMMONS_PROFILE_NOT_EXIST_RESPONSE,
+        match_querystring=True,
+    )
 
     responses.add_callback(
         responses.POST,
@@ -175,15 +228,13 @@ def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_web
         match_querystring=True,
     )
 
-    try:
-        res = client.post(
-            url_for('actblue.donation'),
-            headers={ 'Authorization': mock_actblue_webhook_auth },
-            data=sample_donation,
-        )
-    except NotImplementedError:
-        print(f'Waiting for implementation of upload_to_mobilecommons() : )')
-        return
+    #update sample_donation
+    sample_donation = json.loads(sample_donation)
+    sample_donation['contribution']['createdAt'] = "2019-06-17T03:49:32Z"
+    sample_donation = json.dumps(sample_donation)
+
+    res = run_mock_actblue_webhook_auth(client, sample_donation, mock_actblue_webhook_auth)
 
     assert len(responses.calls) == 2
     assert res.status_code == 204
+    return

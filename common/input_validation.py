@@ -63,6 +63,10 @@ STATE_TO_ABBREV = {
 
 STATE_ABBREVS = set(STATE_TO_ABBREV.values())
 
+### add country abbrev
+COUNTRYS_TO_ABBREV = {
+    'United States': 'US',
+}
 
 def extract_postal_code(t):
     match = POSTAL_CODE_RE.search(t)
