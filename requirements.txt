@@ -5,9 +5,5 @@ nameparser==1.0.3
 phonenumbers==8.10.13
 python-dateutil==2.6.0
 xmltodict==0.12.0
-<<<<<<< HEAD
 zappa==0.48.2
 pytz==2019.2
-
-=======
->>>>>>> 3dcf57239bb2bb96ba696e930f9061d07cdb93a1

@@ -2,8 +2,6 @@ import re
 
 import phonenumbers
 
-
-<<<<<<< HEAD
 STATE_TO_ABBREV = {
     'alabama': 'AL',
     'alaska': 'AK',
@@ -70,10 +68,9 @@ def extract_postal_code(t):
     match = POSTAL_CODE_RE.search(t)
     if match:
         return match.group(0)
-=======
+
 def extract_phone_number(t):
     """Given string containing a phone #, returns string with phone # in canonical format.
->>>>>>> 3dcf57239bb2bb96ba696e930f9061d07cdb93a1
 
     Format returned is e.g. '15105016227', which is Mobile Commons canonical format.
 
