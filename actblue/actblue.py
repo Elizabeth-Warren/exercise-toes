@@ -71,11 +71,6 @@ def donation():
         print(f'ActBlue - Bad Request - data: {req_body}')
         return ('Bad Request', 400)
 
-    process_donation(event)
-    return ('', 204)
-
-@task
-def process_donation(event):
     upload_to_mobilecommons(event)
     return ('', 204)
 
