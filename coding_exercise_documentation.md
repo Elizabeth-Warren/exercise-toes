@@ -40,7 +40,7 @@ Remove the `raise(NotImplementedError)` and run `make test`. This makes two test
 
 Now, let’s implement `upload_to_mobilecommons()` so the tests pass!
 
-You can refer to ActBlue’s webhook documentation and the sample incoming donation payload used in tests `actblue/sample_donation.json`. See Appendix 1 below for the relevant Mobile Commons API endpoint documentation (unfortunately their documentation is not publicly accessible :-/).
+You can refer to [ActBlue’s webhook documentation](https://secure.actblue.com/docs/webhooks) and the sample incoming donation payload used in tests `actblue/sample_donation.json`. See Appendix 1 below for the relevant Mobile Commons API endpoint documentation (unfortunately their documentation is not publicly accessible :-/).
 
 ## Step 2: Send us your `actblue.py`
 
