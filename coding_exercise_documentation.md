@@ -44,7 +44,7 @@ You can refer to [ActBlue’s webhook documentation](https://secure.actblue.com/
 
 ## Step 2: Send us your `actblue.py`
 
-Reply to the email we sent you with your actblue.py. Thank you thank you!
+Reply ALL to the email we sent you with your actblue.py. Thank you thank you!
 
 (Next steps of the interview process may involve a screen-share coding interview building on top of your work in this repo.)
 
