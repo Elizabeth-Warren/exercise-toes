@@ -13,9 +13,9 @@ def send_sms(campaign_id, phone_number, message):
     """Sends given message to given phone number in given campaign."""
     try:
         payload = {
-          'campaign_id': campaign_id,
-          'phone_number': phone_number,
-          'body': message,
+            'campaign_id': campaign_id,
+            'phone_number': phone_number,
+            'body': message,
         }
         mobile_commons_response = post_to_mobile_commons('send_message', payload)
     except RuntimeError as e:
@@ -26,7 +26,7 @@ def profile_exists(phone_number):
     """Returns whether or not a Mobile Commons profile exists with given phone number."""
     try:
         payload = {
-          'phone_number': phone_number,
+            'phone_number': phone_number,
         }
         mobile_commons_response = post_to_mobile_commons('profile', payload)
         d = xmltodict.parse(mobile_commons_response.text, attr_prefix='', cdata_key='value')

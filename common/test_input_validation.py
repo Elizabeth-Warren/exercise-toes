@@ -4,7 +4,7 @@ from common.input_validation import (
 
 
 def test_extract_phone_number():
-    assert extract_phone_number('510501622') == None
+    assert extract_phone_number('510501622') is None
     assert extract_phone_number('5105016227') == '15105016227'
     assert extract_phone_number('15105016227') == '15105016227'
     assert extract_phone_number('+15105016227') == '15105016227'

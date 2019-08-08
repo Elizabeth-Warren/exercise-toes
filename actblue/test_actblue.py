@@ -90,7 +90,7 @@ def mock_actblue_webhook_auth():
 def test_invalid_auth(client, sample_donation, mock_actblue_webhook_auth):
     res = client.post(
         url_for('actblue.donation'),
-        headers={ 'Authorization': f'Basic {b64encode(b"wrong_user:wrong_password").decode("ascii")}' },
+        headers={'Authorization': f'Basic {b64encode(b"wrong_user:wrong_password").decode("ascii")}'},
         data=sample_donation,
     )
     assert res.status_code == 401
@@ -105,7 +105,7 @@ def test_valid_auth_no_phone(client, sample_donation, mock_actblue_webhook_auth)
     try:
         res = client.post(
             url_for('actblue.donation'),
-            headers={ 'Authorization': mock_actblue_webhook_auth },
+            headers={'Authorization': mock_actblue_webhook_auth},
             data=sample_donation_no_phone,
         )
         assert res.status_code == 204
@@ -128,7 +128,7 @@ def test_mobile_commons_profile_already_exists(client, sample_donation, mock_act
     try:
         res = client.post(
             url_for('actblue.donation'),
-            headers={ 'Authorization': mock_actblue_webhook_auth },
+            headers={'Authorization': mock_actblue_webhook_auth},
             data=sample_donation,
         )
     except NotImplementedError:
@@ -177,7 +177,7 @@ def test_mobile_commons_profile_upload(client, sample_donation, mock_actblue_web
     try:
         res = client.post(
             url_for('actblue.donation'),
-            headers={ 'Authorization': mock_actblue_webhook_auth },
+            headers={'Authorization': mock_actblue_webhook_auth},
             data=sample_donation,
         )
     except NotImplementedError:

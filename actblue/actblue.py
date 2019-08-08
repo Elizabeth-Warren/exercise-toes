@@ -44,7 +44,7 @@ def authenticate():
     return Response(
         'Could not verify your access level for that URL. You have to login with proper credentials',
         401,
-        { 'WWW-Authenticate': 'Basic realm="Login Required"' }
+        {'WWW-Authenticate': 'Basic realm="Login Required"'}
     )
 
 
