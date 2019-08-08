@@ -4,4 +4,5 @@ gunicorn==19.9.0
 nameparser==1.0.3
 phonenumbers==8.10.13
 python-dateutil==2.6.0
+pytz==2019.2
 xmltodict==0.12.0
