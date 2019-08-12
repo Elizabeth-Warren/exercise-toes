@@ -20,7 +20,6 @@ from flask import (
     request,
 )
 from nameparser import HumanName
-import dateutil
 import pytz
 
 from common.mobile_commons import (
