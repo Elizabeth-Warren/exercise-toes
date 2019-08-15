@@ -14,7 +14,7 @@ We have a few options for how to do this. We already have set up a daily job in 
 
 ActBlue offers webhook functionality, so we can set up an endpoint that ActBlue will hit whenever we get a new donation. Mobile Commons offers an API with which we can POST to to subscribe a phone number. So the goal here is to set up a webhook that will immediately subscribe new donors to our text message list.
 
-## Step 1: Set up Docker and run tests
+## Step 0: Set up Docker and run tests
 
 Install Docker if you haven’t already ([instructions for Mac](https://docs.docker.com/docker-for-mac/install/)). Clone the `exercise-toes` repo (the repo containing this document):
 
@@ -44,7 +44,7 @@ You can refer to [ActBlue’s webhook documentation](https://secure.actblue.com/
 
 ## Step 2: Send us your `actblue.py`
 
-Reply ALL to the email we sent you with your actblue.py. Thank you thank you!
+Reply ALL to the email we sent you with your actblue.py (i.e., make sure tech-hw@elizabethwarren.com gets it). Thank you thank you!
 
 (Next steps of the interview process may involve a screen-share coding interview building on top of your work in this repo.)
 
