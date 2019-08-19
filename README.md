@@ -12,10 +12,6 @@ First:
 Then you can edit code and run tests (no need to `build` or `up` again):
 `make test`
 
-As you work on Step 1 of the interview, you can `make test-step-1` to
-only run the relevant tests of Step 1. (After they all pass, you should
-also check that `make test` still works : )
-
 ## How to run locally (not needed for interview)
 1. `make build up`
 2. Open http://0.0.0.0:5005/
