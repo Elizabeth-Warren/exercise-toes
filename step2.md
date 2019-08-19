@@ -1,6 +1,6 @@
 # Software Engineer for Organizing Technology: Follow-Up Coding Interview
 
-Woohoo, with completion of the first coding exercise, now we’re engaging supporters with a text message as soon as possible after they make their first online donation! Let’s keep iterating on the ActBlue endpoint we were working on, as to not wake people up.
+Woohoo, with completion of the [first coding exercise](https://github.com/Elizabeth-Warren/exercise-toes/blob/master/coding_exercise_documentation.md), now we’re engaging supporters with a text message as soon as possible after they make their first online donation! Let’s keep iterating on the ActBlue endpoint we were working on, as to not wake people up.
 
 When we make the request to `profile_update` endpoint on Mobile Commons, the phone number will immediately get this text message:
 
