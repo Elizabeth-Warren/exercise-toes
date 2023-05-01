@@ -1,5 +1,5 @@
 boto3==1.9.177
-Flask==1.0.3
+Flask==2.3.2
 gunicorn==19.9.0
 nameparser==1.0.3
 phonenumbers==8.10.13
